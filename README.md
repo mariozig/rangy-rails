@@ -29,12 +29,12 @@ Edit `/app/assets/javascripts/application.js` and adjust it to your heart's deli
 
 Here's an example configuration that would include Rangy and all of it's modules:
 
-  //= require rangy-core.js
-  //= require rangy-cssclassapplier.js
-  //= require rangy-highlighter.js
-  //= require rangy-selectionsaverestore.js
-  //= require rangy-serializer.js
-  //= require rangy-textrange.js
+    //= require rangy-core.js
+    //= require rangy-cssclassapplier.js
+    //= require rangy-highlighter.js
+    //= require rangy-selectionsaverestore.js
+    //= require rangy-serializer.js
+    //= require rangy-textrange.js
 
 ## Contributing
 
