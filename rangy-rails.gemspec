@@ -9,9 +9,8 @@ Gem::Specification.new do |gem|
   gem.authors       = ["Mario Zigliotto"]
   gem.email         = ["mariozig@gmail.com"]
   gem.description   = %q{A simple Rails asset pipeline wrapper
-                         for Rangy, "a cross-browser JavaScript range and
-                         selection library" written by the badass who goes by
-                         the name: Tim Down}
+                        for Rangy, "a cross-browser JavaScript range and
+                        selection library" written by the magnificent Tim Down}
   gem.summary       = %q{Rails asset pipeline wrapper for the Rangy library}
   gem.homepage      = "http://github.com/mariozig/rangy-rails/"
 
