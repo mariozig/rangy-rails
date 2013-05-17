@@ -31,9 +31,12 @@ Here's an example configuration that would include Rangy and all of it's modules
     //= require rangy-core
     //= require rangy-cssclassapplier
     //= require rangy-highlighter
+    //= require rangy-position
     //= require rangy-selectionsaverestore
     //= require rangy-serializer
     //= require rangy-textrange
+
+Normally you would only include the modules you're actually using in your project.
 
 ## Contributing
 
