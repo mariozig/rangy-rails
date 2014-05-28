@@ -6,7 +6,493 @@
  *
  * Copyright 2013, Tim Down
  * Licensed under the MIT license.
- * Version: 1.3alpha.780M
- * Build date: 17 May 2013
+ * Version: 1.3alpha.804
+ * Build date: 8 December 2013
  */
-rangy.createModule("Highlighter",["ClassApplier"],function(a,b){function f(a,b){return a.characterRange.start-b.characterRange.start}function j(a,b){this.type=a,this.converterCreator=b}function k(a,b){i[a]=new j(a,b)}function l(a){var b=i[a];if(b instanceof j)return b.create();throw new Error("Highlighter type '"+a+"' is not valid")}function m(a,b){this.start=a,this.end=b}function o(a,b,c,d,e,f){e?(this.id=e,h=Math.max(h,e+1)):this.id=h++,this.characterRange=b,this.doc=a,this.classApplier=c,this.converter=d,this.containerElementId=f||null,this.applied=!1}function p(a,b){b=b||"textContent",this.doc=a||document,this.classAppliers={},this.highlights=[],this.converter=l(b)}var c=a.dom,d=c.arrayContains,e=c.getBody,g=[].forEach?function(a,b){a.forEach(b)}:function(a,b){for(var c=0,d=a.length;c<d;++c)b(a[c])},h=1,i={};j.prototype.create=function(){var a=this.converterCreator();return a.type=this.type,a},a.registerHighlighterType=k,m.prototype={intersects:function(a){return this.start<a.end&&this.end>a.start},union:function(a){return new m(Math.min(this.start,a.start),Math.max(this.end,a.end))},intersection:function(a){return new m(Math.max(this.start,a.start),Math.min(this.end,a.end))},toString:function(){return"[CharacterRange("+this.start+", "+this.end+")]"}},m.fromCharacterRange=function(a){return new m(a.start,a.end)};var n={rangeToCharacterRange:function(a,b){var c=a.getBookmark(b);return new m(c.start,c.end)},characterRangeToRange:function(b,c,d){var e=a.createRange(b);return e.moveToBookmark({start:c.start,end:c.end,containerNode:d}),e},serializeSelection:function(a,b){var c=a.getAllRanges(),d=c.length,e=[],f=d==1&&a.isBackward();for(var g=0,h=c.length;g<h;++g)e[g]={characterRange:this.rangeToCharacterRange(c[g],b),backward:f};return e},restoreSelection:function(a,b,c){a.removeAllRanges();var d=a.win.document;for(var e=0,f=b.length,g,h,i;e<f;++e)h=b[e],i=h.characterRange,g=this.characterRangeToRange(d,h.characterRange,c),a.addRange(g,h.backward)}};k("textContent",function(){return n}),k("TextRange",function(){var b;return function(){if(!b){var c=a.modules.TextRange;if(!c)throw new Error("TextRange module is missing.");if(!c.supported)throw new Error("TextRange module is present but not supported.");b={rangeToCharacterRange:function(a,b){return m.fromCharacterRange(a.toCharacterRange(b))},characterRangeToRange:function(b,c,d){var e=a.createRange(b);return e.selectCharacters(d,c.start,c.end),e},serializeSelection:function(a,b){return a.saveCharacterRanges(b)},restoreSelection:function(a,b,c){a.restoreCharacterRanges(c,b)}}}return b}}()),o.prototype={getContainerElement:function(){return this.containerElementId?this.doc.getElementById(this.containerElementId):e(this.doc)},getRange:function(){return this.converter.characterRangeToRange(this.doc,this.characterRange,this.getContainerElement())},fromRange:function(a){this.characterRange=this.converter.rangeToCharacterRange(a,this.getContainerElement())},getText:function(){return this.getRange().toString()},containsElement:function(a){return this.getRange().containsNodeContents(a.firstChild)},unapply:function(){this.classApplier.undoToRange(this.getRange()),this.applied=!1},apply:function(){this.classApplier.applyToRange(this.getRange()),this.applied=!0},getHighlightElements:function(){return this.classApplier.getElementsWithClassIntersectingRange(this.getRange())},toString:function(){return"[Highlight(ID: "+this.id+", class: "+this.classApplier.cssClass+", character range: "+this.characterRange.start+" - "+this.characterRange.end+")]"}},p.prototype={addClassApplier:function(a){this.classAppliers[a.cssClass]=a},getHighlightForElement:function(a){var b=this.highlights;for(var c=0,d=b.length;c<d;++c)if(b[c].containsElement(a))return b[c];return null},removeHighlights:function(a){for(var b=0,c=this.highlights.length,e;b<c;++b)e=this.highlights[b],d(a,e)&&(e.unapply(),this.highlights.splice(b--,1))},removeAllHighlights:function(){this.removeHighlights(this.highlights)},getIntersectingHighlights:function(a){var b=[],c=this.highlights,e=this.converter;return g(a,function(a){g(c,function(c){a.intersectsRange(c.getRange())&&!d(b,c)&&b.push(c)})}),b},highlightCharacterRanges:function(b,c,d){var e,f,h,i=this.highlights,j=this.converter,k=this.doc,l=[],n=this.classAppliers[b];d=d||null;var p,q,r;d&&(p=this.doc.getElementById(d),p&&(q=a.createRange(this.doc),q.selectNodeContents(p),r=new m(0,q.toString().length),q.detach()));var s,t,u,v;for(e=0,f=c.length;e<f;++e){s=c[e],v=!1,r&&(s=s.intersection(r));for(h=0;h<i.length;++h)d==i[h].containerElementId&&(t=i[h].characterRange,t.intersects(s)&&(l.push(i[h]),i[h]=new o(k,t.union(s),n,j,null,d)));v||i.push(new o(k,s,n,j,null,d))}g(l,function(a){a.unapply()});var w=[];return g(i,function(a){a.applied||(a.apply(),w.push(a))}),w},highlightRanges:function(b,c,d){var f=[],h=this.converter,i=d?d.id:null,j;return d&&(j=a.createRange(d),j.selectNodeContents(d)),g(c,function(a){var b=d?j.intersection(a):a;f.push(h.rangeToCharacterRange(b,d||e(a.getDocument())))}),this.highlightCharacterRanges(f,c,i)},highlightSelection:function(b,c,d){var f=this.converter;c=c||a.getSelection();var h=this.classAppliers[b],i=this.highlights,j=c.win.document,k=d?j.getElementById(d):e(j);if(!h)throw new Error("No class applier found for class '"+b+"'");var l=f.serializeSelection(c,k),n=[];g(l,function(a){n.push(m.fromCharacterRange(a.characterRange))});var o=this.highlightCharacterRanges(b,n,d);return f.restoreSelection(c,l,k),o},unhighlightSelection:function(b){b=b||a.getSelection();var c=this.getIntersectingHighlights(b.getAllRanges());this.removeHighlights(c),b.removeAllRanges()},selectionOverlapsHighlight:function(b){return b=b||a.getSelection(),this.getIntersectingHighlights(b.getAllRanges()).length>0},serialize:function(a){var b=this.highlights;b.sort(f);var c=["type:"+this.converter.type];return g(b,function(b){var d=b.characterRange,e=[d.start,d.end,b.id,b.classApplier.cssClass,b.containerElementId];a&&a.serializeHighlightText&&e.push(b.getText()),c.push(e.join("$"))}),c.join("|")},deserialize:function(a){var b=a.split("|"),c=[],d=b[0],f,g,h,i=!1;if(!d||!(f=/^type:(\w+)$/.exec(d)))throw new Error("Serialized highlights are invalid.");g=f[1],g!=this.converter.type&&(h=l(g),i=!0),b.shift();var j,k,n,p,q;for(var r=b.length,s;r-->0;)s=b[r].split("$"),n=new m(+s[0],+s[1]),p=s[4]||null,q=p?this.doc.getElementById(p):e(this.doc),i&&(n=this.converter.rangeToCharacterRange(h.characterRangeToRange(this.doc,n,q),q)),j=this.classAppliers[s[3]],k=new o(this.doc,n,j,this.converter,parseInt(s[2]),p),k.apply(),c.push(k);this.highlights=c}},a.Highlighter=p,a.createHighlighter=function(a,b){return new p(a,b)}})
+rangy.createModule("Highlighter", ["ClassApplier"], function(api, module) {
+    var dom = api.dom;
+    var contains = dom.arrayContains;
+    var getBody = dom.getBody;
+
+    // Puts highlights in order, last in document first.
+    function compareHighlights(h1, h2) {
+        return h1.characterRange.start - h2.characterRange.start;
+    }
+
+    var forEach = [].forEach ?
+        function(arr, func) {
+            arr.forEach(func);
+        } :
+        function(arr, func) {
+            for (var i = 0, len = arr.length; i < len; ++i) {
+                func( arr[i] );
+            }
+        };
+
+    var nextHighlightId = 1;
+
+    /*----------------------------------------------------------------------------------------------------------------*/
+
+    var highlighterTypes = {};
+
+    function HighlighterType(type, converterCreator) {
+        this.type = type;
+        this.converterCreator = converterCreator;
+    }
+
+    HighlighterType.prototype.create = function() {
+        var converter = this.converterCreator();
+        converter.type = this.type;
+        return converter;
+    };
+
+    function registerHighlighterType(type, converterCreator) {
+        highlighterTypes[type] = new HighlighterType(type, converterCreator);
+    }
+
+    function getConverter(type) {
+        var highlighterType = highlighterTypes[type];
+        if (highlighterType instanceof HighlighterType) {
+            return highlighterType.create();
+        } else {
+            throw new Error("Highlighter type '" + type + "' is not valid");
+        }
+    }
+
+    api.registerHighlighterType = registerHighlighterType;
+
+    /*----------------------------------------------------------------------------------------------------------------*/
+
+    function CharacterRange(start, end) {
+        this.start = start;
+        this.end = end;
+    }
+
+    CharacterRange.prototype = {
+        intersects: function(charRange) {
+            return this.start < charRange.end && this.end > charRange.start;
+        },
+
+        union: function(charRange) {
+            return new CharacterRange(Math.min(this.start, charRange.start), Math.max(this.end, charRange.end));
+        },
+        
+        intersection: function(charRange) {
+            return new CharacterRange(Math.max(this.start, charRange.start), Math.min(this.end, charRange.end));
+        },
+
+        toString: function() {
+            return "[CharacterRange(" + this.start + ", " + this.end + ")]";
+        }
+    };
+
+    CharacterRange.fromCharacterRange = function(charRange) {
+        return new CharacterRange(charRange.start, charRange.end);
+    };
+
+    /*----------------------------------------------------------------------------------------------------------------*/
+
+    var textContentConverter = {
+        rangeToCharacterRange: function(range, containerNode) {
+            var bookmark = range.getBookmark(containerNode);
+            return new CharacterRange(bookmark.start, bookmark.end);
+        },
+
+        characterRangeToRange: function(doc, characterRange, containerNode) {
+            var range = api.createRange(doc);
+            range.moveToBookmark({
+                start: characterRange.start,
+                end: characterRange.end,
+                containerNode: containerNode
+            });
+
+            return range;
+        },
+
+        serializeSelection: function(selection, containerNode) {
+            var ranges = selection.getAllRanges(), rangeCount = ranges.length;
+            var rangeInfos = [];
+
+            var backward = rangeCount == 1 && selection.isBackward();
+
+            for (var i = 0, len = ranges.length; i < len; ++i) {
+                rangeInfos[i] = {
+                    characterRange: this.rangeToCharacterRange(ranges[i], containerNode),
+                    backward: backward
+                };
+            }
+
+            return rangeInfos;
+        },
+
+        restoreSelection: function(selection, savedSelection, containerNode) {
+            selection.removeAllRanges();
+            var doc = selection.win.document;
+            for (var i = 0, len = savedSelection.length, range, rangeInfo, characterRange; i < len; ++i) {
+                rangeInfo = savedSelection[i];
+                characterRange = rangeInfo.characterRange;
+                range = this.characterRangeToRange(doc, rangeInfo.characterRange, containerNode);
+                selection.addRange(range, rangeInfo.backward);
+            }
+        }
+    };
+
+    registerHighlighterType("textContent", function() {
+        return textContentConverter;
+    });
+
+    /*----------------------------------------------------------------------------------------------------------------*/
+
+    // Lazily load the TextRange-based converter so that the dependency is only checked when required.
+    registerHighlighterType("TextRange", (function() {
+        var converter;
+
+        return function() {
+            if (!converter) {
+                // Test that textRangeModule exists and is supported
+                var textRangeModule = api.modules.TextRange;
+                if (!textRangeModule) {
+                    throw new Error("TextRange module is missing.");
+                } else if (!textRangeModule.supported) {
+                    throw new Error("TextRange module is present but not supported.");
+                }
+
+                converter = {
+                    rangeToCharacterRange: function(range, containerNode) {
+                        return CharacterRange.fromCharacterRange( range.toCharacterRange(containerNode) );
+                    },
+
+                    characterRangeToRange: function(doc, characterRange, containerNode) {
+                        var range = api.createRange(doc);
+                        range.selectCharacters(containerNode, characterRange.start, characterRange.end);
+                        return range;
+                    },
+
+                    serializeSelection: function(selection, containerNode) {
+                        return selection.saveCharacterRanges(containerNode);
+                    },
+
+                    restoreSelection: function(selection, savedSelection, containerNode) {
+                        selection.restoreCharacterRanges(containerNode, savedSelection);
+                    }
+                };
+            }
+
+            return converter;
+        };
+    })());
+
+    /*----------------------------------------------------------------------------------------------------------------*/
+
+    function Highlight(doc, characterRange, classApplier, converter, id, containerElementId) {
+        if (id) {
+            this.id = id;
+            nextHighlightId = Math.max(nextHighlightId, id + 1);
+        } else {
+            this.id = nextHighlightId++;
+        }
+        this.characterRange = characterRange;
+        this.doc = doc;
+        this.classApplier = classApplier;
+        this.converter = converter;
+        this.containerElementId = containerElementId || null;
+        this.applied = false;
+    }
+
+    Highlight.prototype = {
+        getContainerElement: function() {
+            return this.containerElementId ? this.doc.getElementById(this.containerElementId) : getBody(this.doc);
+        },
+        
+        getRange: function() {
+            return this.converter.characterRangeToRange(this.doc, this.characterRange, this.getContainerElement());
+        },
+
+        fromRange: function(range) {
+            this.characterRange = this.converter.rangeToCharacterRange(range, this.getContainerElement());
+        },
+        
+        getText: function() {
+            return this.getRange().toString();
+        },
+
+        containsElement: function(el) {
+            return this.getRange().containsNodeContents(el.firstChild);
+        },
+
+        unapply: function() {
+            this.classApplier.undoToRange(this.getRange());
+            this.applied = false;
+        },
+
+        apply: function() {
+            this.classApplier.applyToRange(this.getRange());
+            this.applied = true;
+        },
+        
+        getHighlightElements: function() {
+            return this.classApplier.getElementsWithClassIntersectingRange(this.getRange());
+        },
+
+        toString: function() {
+            return "[Highlight(ID: " + this.id + ", class: " + this.classApplier.cssClass + ", character range: " +
+                this.characterRange.start + " - " + this.characterRange.end + ")]";
+        }
+    };
+
+    /*----------------------------------------------------------------------------------------------------------------*/
+
+    function Highlighter(doc, type) {
+        type = type || "textContent";
+        this.doc = doc || document;
+        this.classAppliers = {};
+        this.highlights = [];
+        this.converter = getConverter(type);
+    }
+
+    Highlighter.prototype = {
+        addClassApplier: function(classApplier) {
+            this.classAppliers[classApplier.cssClass] = classApplier;
+        },
+
+        getHighlightForElement: function(el) {
+            var highlights = this.highlights;
+            for (var i = 0, len = highlights.length; i < len; ++i) {
+                if (highlights[i].containsElement(el)) {
+                    return highlights[i];
+                }
+            }
+            return null;
+        },
+
+        removeHighlights: function(highlights) {
+            for (var i = 0, len = this.highlights.length, highlight; i < len; ++i) {
+                highlight = this.highlights[i];
+                if (contains(highlights, highlight)) {
+                    highlight.unapply();
+                    this.highlights.splice(i--, 1);
+                }
+            }
+        },
+
+        removeAllHighlights: function() {
+            this.removeHighlights(this.highlights);
+        },
+
+        getIntersectingHighlights: function(ranges) {
+            // Test each range against each of the highlighted ranges to see whether they overlap
+            var intersectingHighlights = [], highlights = this.highlights, converter = this.converter;
+            forEach(ranges, function(range) {
+                //var selCharRange = converter.rangeToCharacterRange(range);
+                forEach(highlights, function(highlight) {
+                    if (range.intersectsRange( highlight.getRange() ) && !contains(intersectingHighlights, highlight)) {
+                        intersectingHighlights.push(highlight);
+                    }
+                });
+            });
+
+            return intersectingHighlights;
+        },
+        
+        highlightCharacterRanges: function(className, charRanges, containerElementId) {
+            var i, len, j;
+            var highlights = this.highlights;
+            var converter = this.converter;
+            var doc = this.doc;
+            var highlightsToRemove = [];
+            var classApplier = this.classAppliers[className];
+            containerElementId = containerElementId || null;
+
+            var containerElement, containerElementRange, containerElementCharRange;
+            if (containerElementId) {
+                containerElement = this.doc.getElementById(containerElementId);
+                if (containerElement) {
+                    containerElementRange = api.createRange(this.doc);
+                    containerElementRange.selectNodeContents(containerElement);
+                    containerElementCharRange = new CharacterRange(0, containerElementRange.toString().length);
+                    containerElementRange.detach();
+                }
+            }
+
+            var charRange, highlightCharRange, merged;
+            for (i = 0, len = charRanges.length; i < len; ++i) {
+                charRange = charRanges[i];
+                merged = false;
+
+                // Restrict character range to container element, if it exists
+                if (containerElementCharRange) {
+                    charRange = charRange.intersection(containerElementCharRange);
+                }
+
+                // Check for intersection with existing highlights. For each intersection, create a new highlight
+                // which is the union of the highlight range and the selected range
+                for (j = 0; j < highlights.length; ++j) {
+                    if (containerElementId == highlights[j].containerElementId) {
+                        highlightCharRange = highlights[j].characterRange;
+
+                        if (highlightCharRange.intersects(charRange)) {
+                            // Replace the existing highlight in the list of current highlights and add it to the list for
+                            // removal
+                            highlightsToRemove.push(highlights[j]);
+                            highlights[j] = new Highlight(doc, highlightCharRange.union(charRange), classApplier, converter, null, containerElementId);
+                        }
+                    }
+                }
+
+                if (!merged) {
+                    highlights.push( new Highlight(doc, charRange, classApplier, converter, null, containerElementId) );
+                }
+            }
+            
+            // Remove the old highlights
+            forEach(highlightsToRemove, function(highlightToRemove) {
+                highlightToRemove.unapply();
+            });
+
+            // Apply new highlights
+            var newHighlights = [];
+            forEach(highlights, function(highlight) {
+                if (!highlight.applied) {
+                    highlight.apply();
+                    newHighlights.push(highlight);
+                }
+            });
+            
+            return newHighlights;
+        },
+
+        highlightRanges: function(className, ranges, containerElement) {
+            var selCharRanges = [];
+            var converter = this.converter;
+            var containerElementId = containerElement ? containerElement.id : null;
+            var containerElementRange;
+            if (containerElement) {
+                containerElementRange = api.createRange(containerElement);
+                containerElementRange.selectNodeContents(containerElement);
+            } 
+
+            forEach(ranges, function(range) {
+                var scopedRange = containerElement ? containerElementRange.intersection(range) : range;
+                selCharRanges.push( converter.rangeToCharacterRange(scopedRange, containerElement || getBody(range.getDocument())) );
+            });
+            
+            return this.highlightCharacterRanges(selCharRanges, ranges, containerElementId);
+        },
+
+        highlightSelection: function(className, selection, containerElementId) {
+            var converter = this.converter;
+            selection = selection || api.getSelection();
+            var classApplier = this.classAppliers[className];
+            var doc = selection.win.document;
+            var containerElement = containerElementId ? doc.getElementById(containerElementId) : getBody(doc);
+
+            if (!classApplier) {
+                throw new Error("No class applier found for class '" + className + "'");
+            }
+
+            // Store the existing selection as character ranges
+            var serializedSelection = converter.serializeSelection(selection, containerElement);
+
+            // Create an array of selected character ranges
+            var selCharRanges = [];
+            forEach(serializedSelection, function(rangeInfo) {
+                selCharRanges.push( CharacterRange.fromCharacterRange(rangeInfo.characterRange) );
+            });
+            
+            var newHighlights = this.highlightCharacterRanges(className, selCharRanges, containerElementId);
+
+            // Restore selection
+            converter.restoreSelection(selection, serializedSelection, containerElement);
+
+            return newHighlights;
+        },
+
+        unhighlightSelection: function(selection) {
+            selection = selection || api.getSelection();
+            var intersectingHighlights = this.getIntersectingHighlights( selection.getAllRanges() );
+            this.removeHighlights(intersectingHighlights);
+            selection.removeAllRanges();
+            return intersectingHighlights;
+        },
+
+        getHighlightsInSelection: function(selection) {
+            selection = selection || api.getSelection();
+            return this.getIntersectingHighlights(selection.getAllRanges());
+        },
+
+        selectionOverlapsHighlight: function(selection) {
+            return this.getHighlightsInSelection(selection).length > 0;
+        },
+
+        serialize: function(options) {
+            var highlights = this.highlights;
+            highlights.sort(compareHighlights);
+            var serializedHighlights = ["type:" + this.converter.type];
+
+            forEach(highlights, function(highlight) {
+                var characterRange = highlight.characterRange;
+                var parts = [
+                    characterRange.start,
+                    characterRange.end,
+                    highlight.id,
+                    highlight.classApplier.cssClass,
+                    highlight.containerElementId
+                ];
+                if (options && options.serializeHighlightText) {
+                    parts.push(highlight.getText());
+                }
+                serializedHighlights.push( parts.join("$") );
+            });
+
+            return serializedHighlights.join("|");
+        },
+
+        deserialize: function(serialized) {
+            var serializedHighlights = serialized.split("|");
+            var highlights = [];
+
+            var firstHighlight = serializedHighlights[0];
+            var regexResult;
+            var serializationType, serializationConverter, convertType = false;
+            if ( firstHighlight && (regexResult = /^type:(\w+)$/.exec(firstHighlight)) ) {
+                serializationType = regexResult[1];
+                if (serializationType != this.converter.type) {
+                    serializationConverter = getConverter(serializationType);
+                    convertType = true;
+                }
+                serializedHighlights.shift();
+            } else {
+                throw new Error("Serialized highlights are invalid.");
+            }
+            
+            var classApplier, highlight, characterRange, containerElementId, containerElement;
+
+            for (var i = serializedHighlights.length, parts; i-- > 0; ) {
+                parts = serializedHighlights[i].split("$");
+                characterRange = new CharacterRange(+parts[0], +parts[1]);
+                containerElementId = parts[4] || null;
+                containerElement = containerElementId ? this.doc.getElementById(containerElementId) : getBody(this.doc);
+
+                // Convert to the current Highlighter's type, if different from the serialization type
+                if (convertType) {
+                    characterRange = this.converter.rangeToCharacterRange(
+                        serializationConverter.characterRangeToRange(this.doc, characterRange, containerElement),
+                        containerElement
+                    );
+                }
+
+                classApplier = this.classAppliers[parts[3]];
+                highlight = new Highlight(this.doc, characterRange, classApplier, this.converter, parseInt(parts[2]), containerElementId);
+                highlight.apply();
+                highlights.push(highlight);
+            }
+            this.highlights = highlights;
+        }
+    };
+
+    api.Highlighter = Highlighter;
+
+    api.createHighlighter = function(doc, rangeCharacterOffsetConverterType) {
+        return new Highlighter(doc, rangeCharacterOffsetConverterType);
+    };
+});
