@@ -8,6 +8,8 @@ The `rangy-rails` gem includes Rangy core and all of it's modules.  The `rangy-r
 will be kept in sync with Rangy's version as this gem really adds nothing but a convenient
 way of getting Rangy into your Rails app.
 
+`rangy-rails` was created using a variation of [YDD](http://ruby.zigzo.com/2013/02/24/ydd-guidelines-yolo-driven-development/).
+
 ## Installation
 
 Add this line to your application's Gemfile:
