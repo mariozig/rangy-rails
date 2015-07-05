@@ -1,7 +1,7 @@
 # rangy-rails
 
 A simple Rails asset pipeline wrapper
-for [Rangy](https://code.google.com/p/rangy/), "a cross-browser JavaScript range and
+for [Rangy](https://github.com/timdown/rangy), "a cross-browser JavaScript range and
 selection library" written by the magnificent [Tim Down](http://www.timdown.co.uk/).
 
 The `rangy-rails` gem includes Rangy core and all of it's modules.  The `rangy-rails` version
